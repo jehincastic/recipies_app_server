@@ -10,11 +10,24 @@ import {
   Resolver,
   Root,
 } from 'type-graphql';
+import {
+  FindConditions,
+  LessThan,
+  Like,
+  MoreThan,
+  ObjectLiteral,
+} from 'typeorm';
 
 import { UserToCircle } from '../entity/UserToCircle';
 import { Circle } from '../entity/Circle';
 import { User } from '../entity/User';
-import { FieldError, MyContext } from '../types';
+import {
+  BookmarInput,
+  FieldError,
+  MyContext,
+  SortingMethod,
+} from '../types';
+import { formatDate } from '../utils/dateFormat';
 
 @ObjectType()
 class UserResponse {
@@ -26,7 +39,13 @@ class UserResponse {
 }
 
 @InputType()
-export class RegisterInput {
+class UserInput extends BookmarInput {
+  @Field()
+  name: string;
+}
+
+@InputType()
+class LoginInput {
   @Field()
   email: string;
 
@@ -40,21 +59,54 @@ export class RegisterInput {
 @Resolver(() => User)
 export class UserResolver {
   @Query(() => [User])
-  users() {
-    return User.find({});
+  users(
+    @Arg('option') option: UserInput,
+  ) {
+    const {
+      sortMethod,
+      name,
+      bookmark,
+      limit,
+    } = option;
+    const sortingMtd = sortMethod || SortingMethod.DESC;
+    const whereClause:string | ObjectLiteral | FindConditions<User>
+    | FindConditions<User>[] | undefined = {
+      name: Like(`%${name}%`),
+    };
+    if (bookmark) {
+      if (sortingMtd === SortingMethod.ASC) {
+        whereClause.createdAt = MoreThan(formatDate(
+          new Date(parseInt(bookmark, 10)).toISOString(),
+        ));
+      } else if (sortingMtd === SortingMethod.DESC) {
+        whereClause.createdAt = LessThan(formatDate(
+          new Date(parseInt(bookmark, 10)).toISOString(),
+        ));
+      }
+    }
+    return User.find({
+      where: whereClause,
+      take: limit,
+      order: {
+        createdAt: sortingMtd,
+      },
+    });
   }
 
   @Mutation(() => UserResponse)
-  async register(
-    @Arg('options') options: RegisterInput,
+  async login(
+    @Arg('options') options: LoginInput,
     @Ctx() { req }: MyContext,
   ): Promise<UserResponse> {
     try {
-      const tempOptions = { ...options };
-      tempOptions.picture = options.picture || `https://robohash.org/${options.name}`;
-      const user = await User.create({
-        ...tempOptions,
-      }).save();
+      let user = await User.findOne({ email: options.email });
+      if (!user) {
+        const tempOptions = { ...options };
+        tempOptions.picture = options.picture || `https://robohash.org/${options.name}`;
+        user = await User.create({
+          ...tempOptions,
+        }).save();
+      }
       req.session.userId = user.id;
       return {
         user,

@@ -8,12 +8,14 @@ import {
   Query,
   Resolver,
   Root,
+  UseMiddleware,
 } from 'type-graphql';
 
 import { User } from '../entity/User';
 import { Circle } from '../entity/Circle';
 import { UserToCircle } from '../entity/UserToCircle';
 import { FieldError } from '../types';
+import { isAuth } from '../middlewares/isAuthenticated';
 
 @ObjectType()
 class CircleResponse {
@@ -44,6 +46,7 @@ export class CircleResolver {
   }
 
   @Mutation(() => CircleResponse)
+  @UseMiddleware(isAuth)
   async createCircle(
     @Arg('input') input: CircleInput,
   ): Promise<CircleResponse> {
