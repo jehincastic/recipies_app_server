@@ -4,11 +4,11 @@ import {
   Entity,
   ManyToOne,
   PrimaryGeneratedColumn,
-} from "typeorm";
+} from 'typeorm';
+import { Field, ObjectType } from 'type-graphql';
 
-import { User } from "./User";
-import { Circle } from "./Circle";
-import { Field, ObjectType } from "type-graphql";
+import { User } from './User';
+import { Circle } from './Circle';
 
 @ObjectType()
 @Entity()
@@ -27,10 +27,10 @@ export class UserToCircle extends BaseEntity {
   userType!: string;
 
   @Field(() => User)
-  @ManyToOne(() => User, user => user.myCircles)
+  @ManyToOne(() => User, (user) => user.myCircles)
   user!: User;
 
   @Field(() => Circle)
-  @ManyToOne(() => Circle, circle => circle.users)
+  @ManyToOne(() => Circle, (circle) => circle.users)
   circle!: Circle;
 }

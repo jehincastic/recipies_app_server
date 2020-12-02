@@ -8,17 +8,18 @@ import {
   Query,
   Resolver,
   Root,
-} from "type-graphql";
+} from 'type-graphql';
 
-import { User } from "../entity/User";
-import { Circle } from "../entity/Circle";
-import { UserToCircle } from "../entity/UserToCircle";
-import { FieldError } from "../types";
+import { User } from '../entity/User';
+import { Circle } from '../entity/Circle';
+import { UserToCircle } from '../entity/UserToCircle';
+import { FieldError } from '../types';
 
 @ObjectType()
 class CircleResponse {
   @Field(() => [FieldError], { nullable: true })
   errors?: FieldError[];
+
   @Field(() => Circle, { nullable: true })
   circle?: Circle;
 }
@@ -27,8 +28,10 @@ class CircleResponse {
 class CircleInput {
   @Field()
   name: string;
+
   @Field({ nullable: true })
   image?: string;
+
   @Field({ nullable: true })
   description?: string;
 }
@@ -47,28 +50,28 @@ export class CircleResolver {
     try {
       const circle = await Circle.create({
         ...input,
-        createdBy: 1,
+        creatorId: 1,
       }).save();
       return {
         circle,
-      }
+      };
     } catch (err) {
       if (err.code === '23505') {
         return {
           errors: [{
             field: 'name',
-            message: 'You have created a circle with the same name.'
-          }]
-        };
-      } else {
-        console.log(err);
-        return {
-          errors: [{
-            field: '',
-            message: 'Server Error.'
-          }]
+            message: 'You have created a circle with the same name.',
+          }],
         };
       }
+      // eslint-disable-next-line no-console
+      console.log(err);
+      return {
+        errors: [{
+          field: '',
+          message: 'Server Error.',
+        }],
+      };
     }
   }
 
@@ -76,13 +79,13 @@ export class CircleResolver {
   creator(
     @Root() cricle: Circle,
   ) {
-    return User.findOne({ id: cricle.createdBy });
+    return User.findOne({ id: cricle.creatorId });
   }
 
   @FieldResolver()
   users(
-    @Root() circle: Circle
+    @Root() circle: Circle,
   ) {
-    return UserToCircle.find({circleId: circle.id});
+    return UserToCircle.find({ circleId: circle.id });
   }
 }

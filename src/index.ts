@@ -1,3 +1,4 @@
+/* eslint-disable import/first */
 import 'reflect-metadata';
 import dotEnv from 'dotenv';
 import express from 'express';
@@ -11,7 +12,12 @@ import { createConnection } from 'typeorm';
 
 dotEnv.config();
 
-import { COOKIE_NAME, __prod__, COOKIE_SECRET, COOKIE_AGE } from './constants';
+import {
+  COOKIE_NAME,
+  __prod__,
+  COOKIE_SECRET,
+  COOKIE_AGE,
+} from './constants';
 import { UserResolver } from './resolvers/user';
 import { CircleResolver } from './resolvers/circle';
 import { UserToCircleResolver } from './resolvers/userToCircle';
@@ -26,24 +32,22 @@ const main = async () => {
     origin: 'http://localhost:3000',
     credentials: true,
   }));
-  app.use(
-    session({
-      name: COOKIE_NAME,
-      store: new RedisStore({
-        client: redis,
-        disableTouch: true,
-      }),
-      secret: COOKIE_SECRET,
-      resave: false,
-      saveUninitialized: false,
-      cookie: {
-        maxAge: COOKIE_AGE,
-        httpOnly: true,
-        sameSite: 'lax',
-        secure: __prod__,
-      }
-    })
-  );  
+  app.use(session({
+    name: COOKIE_NAME,
+    store: new RedisStore({
+      client: redis,
+      disableTouch: true,
+    }),
+    secret: COOKIE_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      maxAge: COOKIE_AGE,
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: __prod__,
+    },
+  }));
 
   const apolloServer = new ApolloServer({
     schema: await buildSchema({
@@ -52,9 +56,9 @@ const main = async () => {
         CircleResolver,
         UserToCircleResolver,
       ],
-      validate: false
+      validate: false,
     }),
-    context: ({ req, res }) => ({ req, res, redis })
+    context: ({ req, res }) => ({ req, res, redis }),
   });
 
   apolloServer.applyMiddleware({
@@ -63,11 +67,12 @@ const main = async () => {
   });
 
   app.listen(4000, () => {
-    console.log(process.env.NODE_ENV)
+    // eslint-disable-next-line no-console
     console.log('Server Started on Port 4000 🚀');
   });
 };
 
-main().catch(err => {
+main().catch((err) => {
+  // eslint-disable-next-line no-console
   console.error(err);
 });

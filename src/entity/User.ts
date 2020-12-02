@@ -1,4 +1,4 @@
-import { Field, Int, ObjectType } from "type-graphql";
+import { Field, Int, ObjectType } from 'type-graphql';
 import {
   BaseEntity,
   Column,
@@ -7,10 +7,10 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
-} from "typeorm";
+} from 'typeorm';
 
-import { Circle } from "./Circle";
-import { UserToCircle } from "./UserToCircle";
+import { Circle } from './Circle';
+import { UserToCircle } from './UserToCircle';
 
 @ObjectType()
 @Entity()
@@ -28,15 +28,15 @@ export class User extends BaseEntity {
   name!: string;
 
   @Field(() => [Circle])
-  @OneToMany(() => Circle, circle => circle.creator)
+  @OneToMany(() => Circle, (circle) => circle.creator)
   circles: Circle[];
 
   @Field(() => [UserToCircle])
-  @OneToMany(() => UserToCircle, userToCircle => userToCircle.user)
+  @OneToMany(() => UserToCircle, (userToCircle) => userToCircle.user)
   myCircles: UserToCircle[];
 
   @Field({ nullable: true })
-  @Column("varchar", { length: 150, nullable: true })
+  @Column('varchar', { length: 150, nullable: true })
   picture?: string;
 
   @Field(() => String)

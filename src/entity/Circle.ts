@@ -1,4 +1,4 @@
-import { Field, Int, ObjectType } from "type-graphql";
+import { Field, Int, ObjectType } from 'type-graphql';
 import {
   BaseEntity,
   Column,
@@ -8,15 +8,15 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
   Unique,
-  UpdateDateColumn
-} from "typeorm";
+  UpdateDateColumn,
+} from 'typeorm';
 
-import { User } from "./User";
-import { UserToCircle } from "./UserToCircle";
+import { User } from './User';
+import { UserToCircle } from './UserToCircle';
 
 @ObjectType()
 @Entity()
-@Unique(["name", "createdBy"])
+@Unique(['name', 'creatorId'])
 export class Circle extends BaseEntity {
   @Field(() => Int)
   @PrimaryGeneratedColumn()
@@ -35,16 +35,16 @@ export class Circle extends BaseEntity {
   description?: string;
 
   @Field(() => User)
-  @ManyToOne(() => User, user => user.circles)
+  @ManyToOne(() => User, (user) => user.circles)
   creator: User;
 
   @Field(() => [UserToCircle])
-  @OneToMany(() => UserToCircle, userToCircle => userToCircle.circle)
+  @OneToMany(() => UserToCircle, (userToCircle) => userToCircle.circle)
   users: UserToCircle[];
 
   @Column()
-  createdBy: number;
-  
+  creatorId: number;
+
   @Field(() => String)
   @CreateDateColumn()
   createdAt: Date;
