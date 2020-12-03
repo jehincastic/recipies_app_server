@@ -4,6 +4,7 @@ import {
   Entity,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Unique,
 } from 'typeorm';
 import { Field, ObjectType } from 'type-graphql';
 
@@ -12,6 +13,7 @@ import { Circle } from './Circle';
 
 @ObjectType()
 @Entity()
+@Unique(['userId', 'circleId'])
 export class UserToCircle extends BaseEntity {
   @PrimaryGeneratedColumn()
   id!: number;

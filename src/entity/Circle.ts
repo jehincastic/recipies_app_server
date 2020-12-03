@@ -46,10 +46,10 @@ export class Circle extends BaseEntity {
   creatorId: number;
 
   @Field(() => String)
-  @CreateDateColumn()
+  @CreateDateColumn({ precision: 3 })
   createdAt: Date;
 
   @Field(() => String)
-  @UpdateDateColumn()
+  @UpdateDateColumn({ precision: 3 })
   updatedAt: Date;
 }

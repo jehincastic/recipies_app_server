@@ -1,3 +1,4 @@
+/* eslint-disable no-shadow */
 /* eslint-disable no-unused-vars */
 import { Request, Response } from 'express';
 import { Redis } from 'ioredis';
@@ -24,7 +25,6 @@ export class FieldError {
   message: string;
 }
 
-// eslint-disable-next-line no-shadow
 export enum SortingMethod {
   ASC='ASC',
   DESC='DESC',
@@ -36,7 +36,7 @@ registerEnumType(SortingMethod, {
 });
 
 @InputType()
-export class BookmarInput {
+export class BookmarkInput {
   @Field(() => SortingMethod, { nullable: true })
   sortMethod?: SortingMethod;
 
@@ -45,4 +45,22 @@ export class BookmarInput {
 
   @Field({ nullable: true })
   bookmark?: string;
+}
+
+export enum ResponseStatus {
+  success='Success',
+  failed='Failed',
+}
+
+registerEnumType(ResponseStatus, {
+  name: 'ResponseStatus',
+});
+
+@ObjectType()
+export class ResponseType {
+  @Field()
+  status: ResponseStatus;
+
+  @Field()
+  message: string;
 }

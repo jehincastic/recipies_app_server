@@ -40,10 +40,10 @@ export class User extends BaseEntity {
   picture?: string;
 
   @Field(() => String)
-  @CreateDateColumn()
+  @CreateDateColumn({ precision: 3 })
   createdAt: Date;
 
   @Field(() => String)
-  @UpdateDateColumn()
+  @UpdateDateColumn({ precision: 3 })
   updatedAt: Date;
 }

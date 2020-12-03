@@ -10,24 +10,17 @@ import {
   Resolver,
   Root,
 } from 'type-graphql';
-import {
-  FindConditions,
-  LessThan,
-  Like,
-  MoreThan,
-  ObjectLiteral,
-} from 'typeorm';
+import { getConnection } from 'typeorm';
 
 import { UserToCircle } from '../entity/UserToCircle';
 import { Circle } from '../entity/Circle';
 import { User } from '../entity/User';
 import {
-  BookmarInput,
+  BookmarkInput,
   FieldError,
   MyContext,
   SortingMethod,
 } from '../types';
-import { formatDate } from '../utils/dateFormat';
 
 @ObjectType()
 class UserResponse {
@@ -39,7 +32,7 @@ class UserResponse {
 }
 
 @InputType()
-class UserInput extends BookmarInput {
+class UserInput extends BookmarkInput {
   @Field()
   name: string;
 }
@@ -69,28 +62,21 @@ export class UserResolver {
       limit,
     } = option;
     const sortingMtd = sortMethod || SortingMethod.DESC;
-    const whereClause:string | ObjectLiteral | FindConditions<User>
-    | FindConditions<User>[] | undefined = {
-      name: Like(`%${name}%`),
-    };
+    const qb = getConnection()
+      .getRepository(User)
+      .createQueryBuilder('user')
+      .where('LOWER(user.name) like LOWER(:name)', { name: `%${name}%` });
     if (bookmark) {
       if (sortingMtd === SortingMethod.ASC) {
-        whereClause.createdAt = MoreThan(formatDate(
-          new Date(parseInt(bookmark, 10)).toISOString(),
-        ));
+        qb.andWhere('"user"."createdAt" > :cursor', { cursor: new Date(parseInt(bookmark, 10)) });
       } else if (sortingMtd === SortingMethod.DESC) {
-        whereClause.createdAt = LessThan(formatDate(
-          new Date(parseInt(bookmark, 10)).toISOString(),
-        ));
+        qb.andWhere('"user"."createdAt" < :cursor', { cursor: new Date(parseInt(bookmark, 10)) });
       }
     }
-    return User.find({
-      where: whereClause,
-      take: limit,
-      order: {
-        createdAt: sortingMtd,
-      },
-    });
+    return qb
+      .orderBy('"user"."createdAt"', sortingMtd)
+      .take(limit)
+      .getMany();
   }
 
   @Mutation(() => UserResponse)
@@ -121,7 +107,7 @@ export class UserResolver {
         };
       }
       // eslint-disable-next-line no-console
-      console.log(err);
+      console.error(err);
       return {
         errors: [{
           field: '',
