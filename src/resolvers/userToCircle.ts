@@ -1,5 +1,6 @@
 import {
   Arg,
+  Ctx,
   Field,
   FieldResolver,
   InputType,
@@ -15,7 +16,7 @@ import { User } from '../entity/User';
 import { Circle } from '../entity/Circle';
 import { isAuthoriedForCircle } from '../middlewares/isAuthorized';
 import { isAuth } from '../middlewares/isAuthenticated';
-import { ResponseStatus, ResponseType } from '../types';
+import { MyContext, ResponseStatus, ResponseType } from '../types';
 
 @InputType()
 class AddUserToCircle {
@@ -58,6 +59,41 @@ export class UserToCircleResolver {
       return {
         status: ResponseStatus.failed,
         message: 'Server Error.',
+      };
+    }
+  }
+
+  @Mutation(() => ResponseType)
+  @UseMiddleware(isAuth, isAuthoriedForCircle)
+  async removeUserfromcircle(
+    @Arg('input') input: AddUserToCircle,
+    @Ctx() { req }: MyContext,
+  ): Promise<ResponseType> {
+    try {
+      const {
+        circleId,
+        userId,
+      } = input;
+      if (req.session.userId === userId) {
+        return {
+          status: ResponseStatus.failed,
+          message: 'You cannot remove yourself.',
+        };
+      }
+      await UserToCircle.delete({
+        userId,
+        circleId,
+      });
+      return {
+        status: ResponseStatus.success,
+        message: 'User Removed Sucessfully',
+      };
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error(err);
+      return {
+        status: ResponseStatus.failed,
+        message: 'Could Not Remove User. Please Try Again.',
       };
     }
   }
