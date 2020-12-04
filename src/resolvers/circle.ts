@@ -4,6 +4,7 @@ import {
   Field,
   FieldResolver,
   InputType,
+  Int,
   Mutation,
   ObjectType,
   Query,
@@ -21,8 +22,11 @@ import {
   MyContext,
   BookmarkInput,
   SortingMethod,
+  ResponseType,
+  ResponseStatus,
 } from '../types';
 import { isAuth } from '../middlewares/isAuthenticated';
+import { isAuthoriedForCircle } from '../middlewares/isAuthorized';
 
 @ObjectType()
 class CircleResponse {
@@ -49,6 +53,27 @@ class CircleInput {
 class CircleFindInput extends BookmarkInput {
   @Field({ nullable: true })
   name?: string;
+}
+
+@InputType()
+class CircleUpdateInput {
+  @Field(() => Int)
+  circleId: number;
+
+  @Field({ nullable: true })
+  name?: string;
+
+  @Field({ nullable: true })
+  image?: string;
+
+  @Field({ nullable: true })
+  description?: string;
+}
+
+@InputType()
+class DeleteCircleInput {
+  @Field(() => Int)
+  circleId: number;
 }
 
 @Resolver(() => Circle)
@@ -124,6 +149,79 @@ export class CircleResolver {
           field: '',
           message: 'Server Error.',
         }],
+      };
+    }
+  }
+
+  @Mutation(() => CircleResponse)
+  @UseMiddleware(isAuth, isAuthoriedForCircle)
+  async updateCircle(
+    @Arg('input') input: CircleUpdateInput,
+  ): Promise<CircleResponse> {
+    try {
+      const {
+        name,
+        description,
+        image,
+        circleId: id,
+      } = input;
+      if (name || description || image) {
+        const oldCircle = await Circle.findOne({ id }) as Circle;
+        oldCircle.description = description || oldCircle.description;
+        oldCircle.image = image || oldCircle.image;
+        oldCircle.name = name || oldCircle.name;
+        await Circle.save(oldCircle);
+        return {
+          circle: oldCircle,
+        };
+      }
+      return {
+        errors: [{
+          field: '',
+          message: 'Nothing To Update',
+        }],
+      };
+    } catch (err) {
+      if (err.code === '23505') {
+        return {
+          errors: [{
+            field: 'name',
+            message: 'You have created a circle with the same name.',
+          }],
+        };
+      }
+      // eslint-disable-next-line no-console
+      console.error(err);
+      return {
+        errors: [{
+          field: '',
+          message: 'Server Error.',
+        }],
+      };
+    }
+  }
+
+  @Mutation(() => ResponseType)
+  @UseMiddleware(isAuth, isAuthoriedForCircle)
+  async deleteCircle(
+    @Arg('input') input: DeleteCircleInput,
+  ): Promise<ResponseType> {
+    try {
+      const {
+        circleId,
+      } = input;
+      await UserToCircle.delete({ circleId });
+      await Circle.delete({ id: circleId });
+      return {
+        status: ResponseStatus.success,
+        message: 'Deleted Sucessfully.',
+      };
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error(err);
+      return {
+        status: ResponseStatus.failed,
+        message: 'Could Not Delete Circle. Please Try Again.',
       };
     }
   }
