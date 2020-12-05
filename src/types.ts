@@ -64,3 +64,69 @@ export class ResponseType {
   @Field()
   message: string;
 }
+
+@ObjectType()
+export class Ingredient {
+  @Field({ nullable: true })
+  amount: number;
+
+  @Field({ nullable: true })
+  units: string;
+
+  @Field()
+  name: string;
+}
+
+@InputType()
+export class IngredientInput {
+  @Field({ nullable: true })
+  amount: number;
+
+  @Field({ nullable: true })
+  units: string;
+
+  @Field()
+  name: string;
+}
+
+@ObjectType()
+export class Timing {
+  @Field()
+  title: string;
+
+  @Field(() => Int, { nullable: true })
+  minutes: number;
+
+  @Field(() => Int, { nullable: true })
+  hours: number;
+}
+
+@InputType()
+export class TimingInput {
+  @Field()
+  title: string;
+
+  @Field(() => Int, { nullable: true })
+  minutes: number;
+
+  @Field(() => Int, { nullable: true })
+  hours: number;
+}
+
+@ObjectType()
+export class Step {
+  @Field(() => Int)
+  stepNo: number;
+
+  @Field()
+  step: string;
+}
+
+@InputType()
+export class StepInput {
+  @Field(() => Int)
+  stepNo: number;
+
+  @Field()
+  step: string;
+}

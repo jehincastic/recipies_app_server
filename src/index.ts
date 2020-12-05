@@ -21,6 +21,7 @@ import {
 import { UserResolver } from './resolvers/user';
 import { CircleResolver } from './resolvers/circle';
 import { UserToCircleResolver } from './resolvers/userToCircle';
+import { RecipyResolver } from './resolvers/recipy';
 
 const main = async () => {
   const conn = await createConnection();
@@ -55,6 +56,7 @@ const main = async () => {
         UserResolver,
         CircleResolver,
         UserToCircleResolver,
+        RecipyResolver,
       ],
       validate: false,
     }),

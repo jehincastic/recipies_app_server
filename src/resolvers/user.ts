@@ -21,6 +21,7 @@ import {
   MyContext,
   SortingMethod,
 } from '../types';
+import { Recipy } from '../entity/Recipy';
 
 @ObjectType()
 class UserResponse {
@@ -115,6 +116,13 @@ export class UserResolver {
         }],
       };
     }
+  }
+
+  @FieldResolver()
+  recipies(
+    @Root() user: User,
+  ) {
+    return Recipy.find({ creatorId: user.id });
   }
 
   @FieldResolver()

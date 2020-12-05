@@ -10,6 +10,7 @@ import {
 } from 'typeorm';
 
 import { Circle } from './Circle';
+import { Recipy } from './Recipy';
 import { UserToCircle } from './UserToCircle';
 
 @ObjectType()
@@ -30,6 +31,10 @@ export class User extends BaseEntity {
   @Field(() => [Circle])
   @OneToMany(() => Circle, (circle) => circle.creator)
   circles: Circle[];
+
+  @Field(() => [Recipy])
+  @OneToMany(() => Recipy, (recipy) => recipy.creator)
+  recipies: Recipy[];
 
   @Field(() => [UserToCircle])
   @OneToMany(() => UserToCircle, (userToCircle) => userToCircle.user)
