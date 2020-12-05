@@ -56,6 +56,16 @@ registerEnumType(ResponseStatus, {
   name: 'ResponseStatus',
 });
 
+export enum RecipyFindType {
+  ALL='ALL',
+  SELF='SELF',
+  CIRCLE='CIRCLE',
+}
+
+registerEnumType(RecipyFindType, {
+  name: 'RecipyFindType',
+});
+
 @ObjectType()
 export class ResponseType {
   @Field()

@@ -25,6 +25,7 @@ import {
   StepInput,
   Timing,
   TimingInput,
+  RecipyFindType,
 } from '../types';
 import { Recipy } from '../entity/Recipy';
 import { isAuth } from '../middlewares/isAuthenticated';
@@ -45,9 +46,6 @@ class RecipyResponse {
 class RecipyInput {
   @Field()
   title!: string;
-
-  @Field(() => Boolean, { nullable: true })
-  public: boolean;
 
   @Field(() => [IngredientInput])
   ingredients: Ingredient[]
@@ -78,6 +76,12 @@ class RecipyInput {
 class RecipyFindInput extends BookmarkInput {
   @Field({ nullable: true })
   title?: string;
+
+  @Field(() => RecipyFindType)
+  type: RecipyFindType;
+
+  @Field(() => Int, { nullable: true })
+  circleId: number;
 }
 
 @Resolver(() => Recipy)
@@ -98,7 +102,7 @@ export class RecipyResolver {
         ...finalInput,
         creatorId: userId,
       }).save();
-      if (finalInput.circleIds.length > 0 && !recipy.public) {
+      if (finalInput.circleIds.length > 0) {
         const recipeCircleData: RecipyToCircle[] = finalInput.circleIds.map((circleId) => {
           const recipyData = new RecipyToCircle();
           recipyData.circleId = circleId;
@@ -142,15 +146,29 @@ export class RecipyResolver {
       title,
       bookmark,
       limit,
+      type,
+      circleId,
     } = input;
     const sortingMtd = sortMethod || SortingMethod.DESC;
+    let comparsionOperator = '!=';
+    if (type === RecipyFindType.SELF) {
+      comparsionOperator = '=';
+    } else if (type === RecipyFindType.ALL) {
+      comparsionOperator = '!=';
+    }
     const qb = getConnection()
       .getRepository(Recipy)
       .createQueryBuilder('recipy')
       .innerJoin('recipy.circles', 'recipy_to_circle')
       .innerJoin('recipy_to_circle.circle', 'circle')
-      .innerJoin('circle.users', 'user_to_circle')
-      .where('user_to_circle.userId = :userId', { userId });
+      .innerJoin('circle.users', 'user_to_circle');
+    if (type === RecipyFindType.SELF || type === RecipyFindType.ALL) {
+      qb.where('user_to_circle.userId = :userId', { userId })
+        .andWhere(`recipy.creatorId ${comparsionOperator} :userId`, { userId });
+    } else if (type === RecipyFindType.CIRCLE) {
+      qb.andWhere('circle.id = :circleId', { circleId });
+    }
+    qb.andWhere('recipy.private = :priavate', { priavate: false });
     if (bookmark) {
       if (sortingMtd === SortingMethod.ASC) {
         qb.andWhere('recipy."createdAt" > :cursor', { cursor: new Date(parseInt(bookmark, 10)) });

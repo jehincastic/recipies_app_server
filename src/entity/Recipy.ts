@@ -35,10 +35,6 @@ export class Recipy extends BaseEntity {
   @Column({ length: 200 })
   title!: string;
 
-  @Field(() => Boolean, { nullable: true })
-  @Column({ default: false })
-  public: boolean;
-
   @Field(() => [Ingredient])
   @Column({ type: 'jsonb' })
   ingredients: Ingredient[]
