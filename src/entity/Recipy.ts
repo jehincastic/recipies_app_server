@@ -9,6 +9,7 @@ import {
   CreateDateColumn,
   Entity,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   Unique,
   UpdateDateColumn,
@@ -19,6 +20,7 @@ import {
   Timing,
   Step,
 } from '../types';
+import { RecipyToCircle } from './RecipyToCircle';
 import { User } from './User';
 
 @ObjectType()
@@ -59,6 +61,10 @@ export class Recipy extends BaseEntity {
   @Field(() => User)
   @ManyToOne(() => User, (user) => user.recipies)
   creator: User;
+
+  @Field(() => [RecipyToCircle])
+  @OneToMany(() => RecipyToCircle, (recipyToCircle) => recipyToCircle.recipy)
+  circles: RecipyToCircle[];
 
   @Field()
   @Column({ length: 5000 })

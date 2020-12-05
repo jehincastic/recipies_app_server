@@ -11,6 +11,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
+import { RecipyToCircle } from './RecipyToCircle';
 import { User } from './User';
 import { UserToCircle } from './UserToCircle';
 
@@ -41,6 +42,10 @@ export class Circle extends BaseEntity {
   @Field(() => [UserToCircle])
   @OneToMany(() => UserToCircle, (userToCircle) => userToCircle.circle)
   users: UserToCircle[];
+
+  @Field(() => [RecipyToCircle])
+  @OneToMany(() => RecipyToCircle, (recipyToCircle) => recipyToCircle.circle)
+  recipies: RecipyToCircle[];
 
   @Column()
   creatorId: number;

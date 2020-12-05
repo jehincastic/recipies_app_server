@@ -27,6 +27,7 @@ import {
 } from '../types';
 import { isAuth } from '../middlewares/isAuthenticated';
 import { isAuthoriedForCircle } from '../middlewares/isAuthorized';
+import { RecipyToCircle } from '../entity/RecipyToCircle';
 
 @ObjectType()
 class CircleResponse {
@@ -238,5 +239,12 @@ export class CircleResolver {
     @Root() circle: Circle,
   ) {
     return UserToCircle.find({ circleId: circle.id });
+  }
+
+  @FieldResolver()
+  recipies(
+    @Root() circle: Circle,
+  ) {
+    return RecipyToCircle.find({ circleId: circle.id });
   }
 }
