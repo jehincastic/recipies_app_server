@@ -9,8 +9,8 @@ export const sendEmail = async (to: string, html: string, subject: string) => {
     port: 587,
     secure: false,
     auth: {
-      user: 'a7n73nzvd3aozbne@ethereal.email',
-      pass: '4HK92Yj2T39zCE6ndM',
+      user: process.env.email,
+      pass: process.env.email_pass,
     },
   });
 

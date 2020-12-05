@@ -12,12 +12,15 @@ import {
   Root,
   UseMiddleware,
 } from 'type-graphql';
+import { getConnection } from 'typeorm';
 
 import {
+  BookmarkInput,
   FieldError,
   Ingredient,
   IngredientInput,
   MyContext,
+  SortingMethod,
   Step,
   StepInput,
   Timing,
@@ -71,6 +74,12 @@ class RecipyInput {
   circleIds: number[]
 }
 
+@InputType()
+class RecipyFindInput extends BookmarkInput {
+  @Field({ nullable: true })
+  title?: string;
+}
+
 @Resolver(() => Recipy)
 export class RecipyResolver {
   @Mutation(() => RecipyResponse)
@@ -89,7 +98,7 @@ export class RecipyResolver {
         ...finalInput,
         creatorId: userId,
       }).save();
-      if (finalInput.circleIds.length > 0) {
+      if (finalInput.circleIds.length > 0 && !recipy.public) {
         const recipeCircleData: RecipyToCircle[] = finalInput.circleIds.map((circleId) => {
           const recipyData = new RecipyToCircle();
           recipyData.circleId = circleId;
@@ -124,12 +133,38 @@ export class RecipyResolver {
   @Query(() => [Recipy])
   @UseMiddleware(isAuth)
   getRecipies(
+    @Arg('input') input: RecipyFindInput,
     @Ctx() { req }: MyContext,
   ) {
+    const { userId } = req.session;
     const {
-      userId,
-    } = req.session;
-    return Recipy.find({ creatorId: userId });
+      sortMethod,
+      title,
+      bookmark,
+      limit,
+    } = input;
+    const sortingMtd = sortMethod || SortingMethod.DESC;
+    const qb = getConnection()
+      .getRepository(Recipy)
+      .createQueryBuilder('recipy')
+      .innerJoin('recipy.circles', 'recipy_to_circle')
+      .innerJoin('recipy_to_circle.circle', 'circle')
+      .innerJoin('circle.users', 'user_to_circle')
+      .where('user_to_circle.userId = :userId', { userId });
+    if (bookmark) {
+      if (sortingMtd === SortingMethod.ASC) {
+        qb.andWhere('recipy."createdAt" > :cursor', { cursor: new Date(parseInt(bookmark, 10)) });
+      } else if (sortingMtd === SortingMethod.DESC) {
+        qb.andWhere('recipy."createdAt" < :cursor', { cursor: new Date(parseInt(bookmark, 10)) });
+      }
+    }
+    if (title) {
+      qb.andWhere('LOWER(recipy.title) like LOWER(:title)', { title: `%${title}%` });
+    }
+    return qb
+      .orderBy('recipy.createdAt', sortingMtd)
+      .take(limit)
+      .getMany();
   }
 
   @FieldResolver()
